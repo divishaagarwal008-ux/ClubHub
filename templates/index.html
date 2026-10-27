@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClubHub — Student Club & Organisation Management System</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Application CSS -->
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-wrapper">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill text-warning"></i>
+            <span>ClubHub</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#students" class="nav-link" data-section="students">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Students</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#clubs" class="nav-link" data-section="clubs">
+                    <i class="bi bi-building"></i>
+                    <span>Clubs</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#memberships" class="nav-link" data-section="memberships">
+                    <i class="bi bi-person-badge-fill"></i>
+                    <span>Memberships</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#events" class="nav-link" data-section="events">
+                    <i class="bi bi-calendar-event-fill"></i>
+                    <span>Events</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#registrations" class="nav-link" data-section="registrations">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <span>Registrations</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#advisors" class="nav-link" data-section="advisors">
+                    <i class="bi bi-person-workspace"></i>
+                    <span>Faculty Advisors</span>
+                </a>
+            </li>
+        </ul>
+        <div class="p-3 text-white-50 small mt-auto border-top border-secondary">
+            <div><i class="bi bi-database-check text-success me-1"></i> SQLite 3NF Schema</div>
+            <div class="mt-1">Viva Ready &bull; DBMS Project</div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP NAVBAR -->
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary d-lg-none" id="sidebar-toggle" title="Toggle Sidebar">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h4 class="mb-0 fw-bold text-dark" id="page-title">Dashboard</h4>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-success-subtle text-success border border-success-subtle d-none d-md-inline-flex align-items-center gap-1 py-2 px-3">
+                    <i class="bi bi-shield-check"></i> PRAGMA foreign_keys = ON
+                </span>
+                <button class="btn btn-sm btn-outline-primary" id="btn-refresh-data" title="Refresh current view">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- FLOATING ALERT / TOAST CONTAINER -->
+        <div id="alert-container"></div>
+
+        <!-- VIEWS WRAPPER -->
+        <main class="content-container">
+
+            <!-- ========================================================= -->
+            <!-- 1. DASHBOARD VIEW -->
+            <!-- ========================================================= -->
+            <section id="section-dashboard" class="content-section">
+                <!-- Metrics Grid -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-xl">
+                        <div class="stat-card card-primary p-3">
+                            <span class="text-muted small fw-semibold text-uppercase">Students</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="dash-students">0</h2>
+                            <i class="bi bi-people-fill stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl">
+                        <div class="stat-card card-success p-3">
+                            <span class="text-muted small fw-semibold text-uppercase">Active Clubs</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="dash-clubs">0</h2>
+                            <i class="bi bi-building stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl">
+                        <div class="stat-card card-warning p-3">
+                            <span class="text-muted small fw-semibold text-uppercase">Events</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="dash-events">0</h2>
+                            <i class="bi bi-calendar-event stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-6 col-xl">
+                        <div class="stat-card card-purple p-3">
+                            <span class="text-muted small fw-semibold text-uppercase">Faculty Mentors</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="dash-advisors">0</h2>
+                            <i class="bi bi-person-workspace stat-icon"></i>
+                        </div>
+                    </div>
+                    <div class="col-12 col-xl">
+                        <div class="stat-card card-info p-3">
+                            <span class="text-muted small fw-semibold text-uppercase">Active Bookings</span>
+                            <h2 class="fw-bold mb-0 mt-1" id="dash-registrations">0</h2>
+                            <i class="bi bi-ticket-perforated stat-icon"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Upcoming Events -->
+                    <div class="col-lg-7">
+                        <div class="card-table-wrapper h-100">
+                            <div class="card-table-header">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Upcoming Events</h6>
+                                <a href="#events" class="btn btn-sm btn-link text-decoration-none" onclick="navigateSection('events')">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th>Club</th>
+                                            <th>Date & Time</th>
+                                            <th>Venue</th>
+                                            <th>Capacity Occupancy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-upcoming-events-tbody">
+                                        <tr><td colspan="5" class="text-center py-4 text-muted">Loading upcoming events...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Club Membership Distribution -->
+                    <div class="col-lg-5">
+                        <div class="card-table-wrapper h-100">
+                            <div class="card-table-header">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill me-2 text-primary"></i>Club Membership Overview</h6>
+                                <a href="#clubs" class="btn btn-sm btn-link text-decoration-none" onclick="navigateSection('clubs')">View All</a>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Club Name</th>
+                                            <th>Category</th>
+                                            <th>Status</th>
+                                            <th>Members</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dash-clubs-tbody">
+                                        <tr><td colspan="4" class="text-center py-4 text-muted">Loading club statistics...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 2. STUDENTS VIEW -->
+            <!-- ========================================================= -->
+            <section id="section-students" class="content-section d-none">
+                <div class="card-table-wrapper">
+                    <div class="card-table-header">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 450px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                <input type="text" id="student-search-input" class="form-control" placeholder="Search by name, roll no, branch, email...">
+                                <button class="btn btn-outline-secondary" type="button" id="btn-clear-student-search"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="openStudentModal()">
+                            <i class="bi bi-person-plus-fill me-1"></i> Add Student
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Roll No</th>
+                                    <th>Branch</th>
+                                    <th>Year</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-tbody">
+                                <tr><td colspan="8" class="text-center py-4 text-muted">Loading students...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 3. CLUBS VIEW -->
+            <!-- ========================================================= -->
+            <section id="section-clubs" class="content-section d-none">
+                <div class="card-table-wrapper">
+                    <div class="card-table-header">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select id="club-filter-category" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">All Categories</option>
+                                <option value="Technical">Technical</option>
+                                <option value="Cultural">Cultural</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Literary">Literary</option>
+                                <option value="Social">Social</option>
+                                <option value="Academic">Academic</option>
+                            </select>
+                            <select id="club-filter-status" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="openClubModal()">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Add Club
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Club Name</th>
+                                    <th>Category</th>
+                                    <th>Room No</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clubs-tbody">
+                                <tr><td colspan="7" class="text-center py-4 text-muted">Loading clubs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 4. MEMBERSHIPS VIEW (M:N) -->
+            <!-- ========================================================= -->
+            <section id="section-memberships" class="content-section d-none">
+                <div class="card-table-wrapper">
+                    <div class="card-table-header">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select id="membership-filter-club" class="form-select form-select-sm" style="width: 220px;">
+                                <option value="">All Clubs</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="openMembershipModal()">
+                            <i class="bi bi-person-plus-fill me-1"></i> Enroll Student in Club
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Club Name</th>
+                                    <th>Role</th>
+                                    <th>Joined Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberships-tbody">
+                                <tr><td colspan="6" class="text-center py-4 text-muted">Loading memberships...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 5. EVENTS VIEW -->
+            <!-- ========================================================= -->
+            <section id="section-events" class="content-section d-none">
+                <div class="card-table-wrapper">
+                    <div class="card-table-header">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select id="event-filter-club" class="form-select form-select-sm" style="width: 200px;">
+                                <option value="">All Clubs</option>
+                            </select>
+                            <select id="event-filter-status" class="form-select form-select-sm" style="width: auto;">
+                                <option value="">All Statuses</option>
+                                <option value="Upcoming">Upcoming</option>
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="openEventModal()">
+                            <i class="bi bi-calendar-plus-fill me-1"></i> Schedule Event
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Club</th>
+                                    <th>Date & Time</th>
+                                    <th>Venue</th>
+                                    <th>Capacity & Seats</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="events-tbody">
+                                <tr><td colspan="8" class="text-center py-4 text-muted">Loading events...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 6. REGISTRATIONS VIEW (M:N with Capacity Safety) -->
+            <!-- ========================================================= -->
+            <section id="section-registrations" class="content-section d-none">
+                <div class="card-table-wrapper">
+                    <div class="card-table-header">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <select id="registration-filter-event" class="form-select form-select-sm" style="width: 250px;">
+                                <option value="">All Events</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="openRegistrationModal()">
+                            <i class="bi bi-ticket-fill me-1"></i> Register Student for Event
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Roll No</th>
+                                    <th>Event Title</th>
+                                    <th>Event Date</th>
+                                    <th>Registration Date</th>
+                                    <th>Attendance Status</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registrations-tbody">
+                                <tr><td colspan="7" class="text-center py-4 text-muted">Loading registrations...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ========================================================= -->
+            <!-- 7. FACULTY ADVISORS & CLUB MENTORSHIP VIEW -->
+            <!-- ========================================================= -->
+            <section id="section-advisors" class="content-section d-none">
+                <div class="row g-4">
+                    <!-- Faculty Advisors Directory -->
+                    <div class="col-lg-7">
+                        <div class="card-table-wrapper">
+                            <div class="card-table-header">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-person-workspace me-2 text-primary"></i>Faculty Advisors Directory</h6>
+                                <button class="btn btn-sm btn-primary" onclick="openAdvisorModal()">
+                                    <i class="bi bi-plus-circle-fill me-1"></i> Add Faculty Advisor
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Department</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="advisors-tbody">
+                                        <tr><td colspan="6" class="text-center py-4 text-muted">Loading advisors...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Club Mentorship Pairings (Club_Advisor Bridge Table) -->
+                    <div class="col-lg-5">
+                        <div class="card-table-wrapper">
+                            <div class="card-table-header">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-link-45deg me-1 text-primary"></i>Club Mentorship Assignments</h6>
+                                <button class="btn btn-sm btn-outline-primary" onclick="openAssignAdvisorModal()">
+                                    <i class="bi bi-link me-1"></i> Assign
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Club</th>
+                                            <th>Advisor</th>
+                                            <th>Dept</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="club-advisors-tbody">
+                                        <tr><td colspan="4" class="text-center py-4 text-muted">Loading assignments...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MODALS CONTAINER -->
+<!-- ================================================================= -->
+
+<!-- 1. STUDENT ADD / EDIT MODAL -->
+<div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="studentForm" onsubmit="handleStudentFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="studentModalTitle">Add Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="student-form-id">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Full Name<span class="required-asterisk">*</span></label>
+                    <input type="text" id="student-name" class="form-control" required placeholder="e.g. Diya Sharma">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Roll Number<span class="required-asterisk">*</span></label>
+                        <input type="text" id="student-roll" class="form-control" required placeholder="e.g. 2026CSE042">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Branch<span class="required-asterisk">*</span></label>
+                        <input type="text" id="student-branch" class="form-control" required placeholder="e.g. CSE, IT, ECE">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Year of Study<span class="required-asterisk">*</span></label>
+                        <select id="student-year" class="form-select" required>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Phone Number</label>
+                        <input type="tel" id="student-phone" class="form-control" placeholder="10-digit number">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Email Address<span class="required-asterisk">*</span></label>
+                    <input type="email" id="student-email" class="form-control" required placeholder="name@college.edu">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-student">Save Student</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. STUDENT DETAIL MODAL -->
+<div class="modal fade" id="studentDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-circle me-2 text-primary"></i>Student Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card mb-3 border-0 bg-light">
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-6"><strong class="text-muted small">Name:</strong> <span id="sd-name" class="fw-bold"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Roll Number:</strong> <span id="sd-roll"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Branch & Year:</strong> <span id="sd-branch-year"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Email:</strong> <span id="sd-email"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Phone:</strong> <span id="sd-phone"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-2"><i class="bi bi-building me-1 text-primary"></i>Enrolled Clubs (Memberships)</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Club</th>
+                                <th>Category</th>
+                                <th>Role</th>
+                                <th>Joined Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sd-clubs-tbody">
+                            <tr><td colspan="4" class="text-center py-2 text-muted">No club memberships.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. CLUB ADD / EDIT MODAL -->
+<div class="modal fade" id="clubModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="clubForm" onsubmit="handleClubFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="clubModalTitle">Add Club</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="club-form-id">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Club Name<span class="required-asterisk">*</span></label>
+                    <input type="text" id="club-name" class="form-control" required placeholder="e.g. CodeForge Society">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Category<span class="required-asterisk">*</span></label>
+                        <select id="club-category" class="form-select" required>
+                            <option value="Technical">Technical</option>
+                            <option value="Cultural">Cultural</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Literary">Literary</option>
+                            <option value="Social">Social</option>
+                            <option value="Academic">Academic</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Status<span class="required-asterisk">*</span></label>
+                        <select id="club-status" class="form-select" required>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Allotted Room / Venue</label>
+                    <input type="text" id="club-room" class="form-control" placeholder="e.g. Lab 302, Audi-1">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Description</label>
+                    <textarea id="club-desc" class="form-control" rows="3" placeholder="Brief outline of club activities and mission..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-club">Save Club</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 4. CLUB DETAIL MODAL -->
+<div class="modal fade" id="clubDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-building me-2 text-primary"></i>Club Overview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="card mb-3 border-0 bg-light">
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-6"><strong class="text-muted small">Club Name:</strong> <span id="cd-name" class="fw-bold"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Category:</strong> <span id="cd-category"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Room No:</strong> <span id="cd-room"></span></div>
+                            <div class="col-md-6"><strong class="text-muted small">Status:</strong> <span id="cd-status"></span></div>
+                            <div class="col-12"><strong class="text-muted small">Description:</strong> <p id="cd-desc" class="mb-0 text-muted small mt-1"></p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Faculty Mentors -->
+                    <div class="col-md-5">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-person-workspace text-primary me-1"></i>Faculty Advisors</h6>
+                        <ul class="list-group list-group-flush border rounded-2" id="cd-advisors-list">
+                            <li class="list-group-item text-muted small">No advisors assigned.</li>
+                        </ul>
+                    </div>
+                    <!-- Active Members -->
+                    <div class="col-md-7">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-people text-primary me-1"></i>Student Members (<span id="cd-member-count">0</span>)</h6>
+                        <div class="table-responsive border rounded-2" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead><tr><th>Name</th><th>Role</th></tr></thead>
+                                <tbody id="cd-members-tbody">
+                                    <tr><td colspan="2" class="text-muted small text-center">Loading members...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events Organized -->
+                <div class="mt-3">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-calendar-event text-primary me-1"></i>Organized Events</h6>
+                    <div class="table-responsive border rounded-2" style="max-height: 180px; overflow-y: auto;">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr><th>Title</th><th>Date</th><th>Venue</th><th>Occupancy</th></tr></thead>
+                            <tbody id="cd-events-tbody">
+                                <tr><td colspan="4" class="text-muted small text-center">No events scheduled.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. MEMBERSHIP ADD / EDIT MODAL -->
+<div class="modal fade" id="membershipModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="membershipForm" onsubmit="handleMembershipFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="membershipModalTitle">Enroll Student in Club</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="membership-is-edit" value="0">
+                <div class="mb-3" id="membership-student-select-group">
+                    <label class="form-label small fw-semibold">Student<span class="required-asterisk">*</span></label>
+                    <select id="membership-student-id" class="form-select" required>
+                        <option value="">Select a student...</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="membership-club-select-group">
+                    <label class="form-label small fw-semibold">Club<span class="required-asterisk">*</span></label>
+                    <select id="membership-club-id" class="form-select" required>
+                        <option value="">Select a club...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Assigned Role<span class="required-asterisk">*</span></label>
+                    <select id="membership-role" class="form-select" required>
+                        <option value="President">President</option>
+                        <option value="Vice President">Vice President</option>
+                        <option value="Secretary">Secretary</option>
+                        <option value="Treasurer">Treasurer</option>
+                        <option value="Core Member">Core Member</option>
+                        <option value="Member" selected>Member</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-membership">Enroll Student</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 6. EVENT ADD / EDIT MODAL -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="eventForm" onsubmit="handleEventFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="eventModalTitle">Schedule Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="event-form-id">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Organizing Club<span class="required-asterisk">*</span></label>
+                    <select id="event-club-id" class="form-select" required>
+                        <option value="">Select organizing club...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Event Title<span class="required-asterisk">*</span></label>
+                    <input type="text" id="event-title" class="form-control" required placeholder="e.g. Annual Hackathon 2026">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label small fw-semibold">Date & Time<span class="required-asterisk">*</span></label>
+                        <input type="text" id="event-date" class="form-control" required placeholder="YYYY-MM-DD HH:MM:SS">
+                        <div class="form-text small">e.g. 2026-11-20 10:00:00</div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold">Capacity<span class="required-asterisk">*</span></label>
+                        <input type="number" id="event-capacity" class="form-control" min="1" required placeholder="Max seats">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label small fw-semibold">Venue<span class="required-asterisk">*</span></label>
+                        <input type="text" id="event-venue" class="form-control" required placeholder="e.g. Central Auditorium">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold">Status<span class="required-asterisk">*</span></label>
+                        <select id="event-status" class="form-select" required>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Ongoing">Ongoing</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-event">Save Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 7. EVENT REGISTRATION ADD / EDIT MODAL -->
+<div class="modal fade" id="registrationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="registrationForm" onsubmit="handleRegistrationFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="registrationModalTitle">Register Student for Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="registration-is-edit" value="0">
+                <div class="mb-3" id="reg-student-select-group">
+                    <label class="form-label small fw-semibold">Student<span class="required-asterisk">*</span></label>
+                    <select id="reg-student-id" class="form-select" required>
+                        <option value="">Select student...</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="reg-event-select-group">
+                    <label class="form-label small fw-semibold">Event<span class="required-asterisk">*</span></label>
+                    <select id="reg-event-id" class="form-select" required>
+                        <option value="">Select event...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Attendance Status<span class="required-asterisk">*</span></label>
+                    <select id="reg-status" class="form-select" required>
+                        <option value="Registered" selected>Registered</option>
+                        <option value="Attended">Attended</option>
+                        <option value="Absent">Absent</option>
+                        <option value="Cancelled">Cancelled (Frees seat)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-reg">Save Registration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 8. FACULTY ADVISOR ADD / EDIT MODAL -->
+<div class="modal fade" id="advisorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="advisorForm" onsubmit="handleAdvisorFormSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="advisorModalTitle">Add Faculty Advisor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="advisor-form-id">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Full Name<span class="required-asterisk">*</span></label>
+                    <input type="text" id="advisor-name" class="form-control" required placeholder="e.g. Dr. Ramesh Sharma">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Department<span class="required-asterisk">*</span></label>
+                    <input type="text" id="advisor-dept" class="form-control" required placeholder="e.g. Computer Science & Engineering">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label class="form-label small fw-semibold">Email<span class="required-asterisk">*</span></label>
+                        <input type="email" id="advisor-email" class="form-control" required placeholder="name@college.edu">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label small fw-semibold">Phone</label>
+                        <input type="tel" id="advisor-phone" class="form-control" placeholder="10-digit number">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="btn-save-advisor">Save Advisor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 9. ASSIGN ADVISOR TO CLUB MODAL -->
+<div class="modal fade" id="assignAdvisorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="modal-content" id="assignAdvisorForm" onsubmit="handleAssignAdvisorSubmit(event)">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Assign Faculty Mentor to Club</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Club<span class="required-asterisk">*</span></label>
+                    <select id="assign-club-id" class="form-select" required>
+                        <option value="">Select club...</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Faculty Advisor<span class="required-asterisk">*</span></label>
+                    <select id="assign-advisor-id" class="form-select" required>
+                        <option value="">Select advisor...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Assign Mentor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 10. GENERIC DELETE CONFIRMATION MODAL -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="delete-confirm-message" class="mb-2">Are you sure you want to delete this record?</p>
+                <div class="alert alert-warning py-2 px-3 small mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>This action cannot be undone. Any cascading dependencies will also be removed.</span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="btn-confirm-delete">Delete Record</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Application Vanilla JS -->
+<script src="/static/js/app.js"></script>
+
+</body>
+</html>
+

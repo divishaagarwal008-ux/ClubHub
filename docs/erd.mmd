@@ -1,0 +1,68 @@
+erDiagram
+    STUDENT ||--o{ MEMBERSHIP : "joins / holds"
+    CLUB ||--o{ MEMBERSHIP : "has member"
+
+    STUDENT ||--o{ EVENT_REGISTRATION : "signs up for"
+    EVENT ||--o{ EVENT_REGISTRATION : "is booked by"
+
+    CLUB ||--o{ EVENT : "organises"
+
+    CLUB ||--o{ CLUB_ADVISOR : "guided by"
+    FACULTY_ADVISOR ||--o{ CLUB_ADVISOR : "guides"
+
+    STUDENT {
+        int student_id PK "Surrogate Key (Auto-inc)"
+        string name "Student Full Name"
+        string email UK "Unique College Email"
+        string roll_no UK "Unique College Roll Number"
+        string branch "Branch (e.g., CSE, IT, ECE)"
+        int year "Year of Study (1-4)"
+        string phone "Contact Number"
+    }
+
+    CLUB {
+        int club_id PK "Surrogate Key (Auto-inc)"
+        string name UK "Unique Club Name"
+        string category "Category (Technical, Cultural, etc.)"
+        string description "Club Description"
+        string room_no "Allotted Room/Hall"
+        string status "Status (Active / Inactive)"
+    }
+
+    MEMBERSHIP {
+        int student_id PK, FK "References Student(student_id)"
+        int club_id PK, FK "References Club(club_id)"
+        string role "Role (President, Member, etc.)"
+        string joined_at "Timestamp of joining"
+    }
+
+    EVENT {
+        int event_id PK "Surrogate Key (Auto-inc)"
+        int club_id FK "References Club(club_id)"
+        string title "Event Title"
+        string event_date "Date and Time (ISO8601)"
+        string venue "Event Location / Hall"
+        int capacity "Maximum Capacity (> 0)"
+        string status "Status (Upcoming, Completed, etc.)"
+    }
+
+    EVENT_REGISTRATION {
+        int student_id PK, FK "References Student(student_id)"
+        int event_id PK, FK "References Event(event_id)"
+        string registered_at "Timestamp of registration"
+        string attendance_status "Registered / Attended / Absent"
+    }
+
+    FACULTY_ADVISOR {
+        int advisor_id PK "Surrogate Key (Auto-inc)"
+        string name "Advisor Full Name"
+        string email UK "Unique Faculty Email"
+        string department "Academic Department"
+        string phone "Office / Mobile Phone"
+    }
+
+    CLUB_ADVISOR {
+        int club_id PK, FK "References Club(club_id)"
+        int advisor_id PK, FK "References Faculty_Advisor(advisor_id)"
+    }
+
