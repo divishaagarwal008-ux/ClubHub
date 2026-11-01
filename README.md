@@ -136,6 +136,6 @@ Open your browser and navigate to:
 4. **Parameterized SQL Queries**:
    - Every single SQL statement uses `?` parameter placeholders (`db.query_db("SELECT ... WHERE id = ?", (id,))`), completely eliminating SQL Injection vulnerabilities.
 5. **Referential Actions**:
-   - Deleting a Student cleanly cascades to their memberships and registrations.
-   - Deleting a Club cascades to its memberships and events.
-   - Deleting a Faculty Advisor unassigns them from the club while leaving the Club itself intact.
+   - Deleting a Student cleanly cascades to their memberships and registrations
+   - Deleting a Club cascades to its memberships and events
+   - Deleting a Faculty Advisor unassigns them from the club while leaving the Club itself intact
