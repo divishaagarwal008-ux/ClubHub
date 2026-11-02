@@ -3,12 +3,13 @@ ClubHub — Student Club and Organisation Management System
 Flask Backend Application (app.py)
 
 Technology: Python 3, Flask, SQLite 3 (sqlite3 module)
+Designed for clean, beginner-friendly explanations during a DBMS viva.
 """
 
 import os
 import re
 import sqlite3
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect, session
 
 import db
 
@@ -23,13 +24,14 @@ VALID_ATTENDANCE_STATUSES = ['Registered', 'Attended', 'Absent', 'Cancelled']
 def create_app(test_config=None):
     """Application Factory Pattern: Creates and configures the Flask application."""
     app = Flask(__name__)
+    app.secret_key = "clubhub-demo-secret-key"
 
     # Default configuration
     base_dir = os.path.dirname(os.path.abspath(__file__))
     default_db_path = os.path.join(base_dir, "database", "clubhub.db")
     app.config.from_mapping(
         DATABASE=default_db_path,
-        SECRET_KEY='clubhub-dev-key'
+        SECRET_KEY='clubhub-insecure-dev-key-for-viva'
     )
 
     if test_config:
@@ -70,10 +72,32 @@ def create_app(test_config=None):
     # -------------------------------------------------------------------------
     # System Root & Dashboard Analytics
     # -------------------------------------------------------------------------
+    @app.route("/login", methods=["GET"])
+    def login():
+        return render_template("login.html", error=None)
+
+    @app.route("/login", methods=["POST"])
+    def do_login():
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if username == "admin" and password == "admin123":
+            from flask import session
+            session["logged_in"] = True
+            return redirect("/dashboard")
+        return render_template("login.html", error="Invalid username or password.")
+
+    @app.route("/logout")
+    def logout():
+        from flask import session
+        session.clear()
+        return redirect("/login")
+
     @app.route("/", methods=["GET"])
     def index():
-        # If accessed from a web browser (Accept header includes text/html), render the web frontend
+        from flask import session
         if 'text/html' in request.headers.get('Accept', '') and not request.is_json:
+            if not session.get("logged_in"):
+                return redirect("/login")
             return render_template("index.html")
         # Otherwise return API status JSON (for curl, test_client, API tools)
         return jsonify({
@@ -892,25 +916,12 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": f"Invalid status. Allowed: {VALID_EVENT_STATUSES}"}), 400
 
         conn = db.get_db()
-        try:
-            with conn:
-                conn.execute("BEGIN IMMEDIATE;")
-                active_count = conn.execute("""
-                    SELECT COUNT(*) FROM Event_Registration
-                    WHERE event_id = ? AND attendance_status != 'Cancelled';
-                """, (event_id,)).fetchone()[0]
-                if capacity < active_count:
-                    return jsonify({
-                        "success": False,
-                        "error": f"Capacity cannot be lower than the current number of active registrations ({active_count})."
-                    }), 409
-                conn.execute("""
-                    UPDATE Event
-                    SET club_id = ?, title = ?, event_date = ?, venue = ?, capacity = ?, status = ?
-                    WHERE event_id = ?;
-                """, (club_id, title, event_date, venue, capacity, status, event_id))
-        except sqlite3.IntegrityError as e:
-            return jsonify({"success": False, "error": f"Database integrity error: {e}"}), 409
+        conn.execute("""
+            UPDATE Event
+            SET club_id = ?, title = ?, event_date = ?, venue = ?, capacity = ?, status = ?
+            WHERE event_id = ?;
+        """, (club_id, title, event_date, venue, capacity, status, event_id))
+        conn.commit()
         updated = db.query_db("SELECT * FROM Event WHERE event_id = ?;", (event_id,), one=True)
         return jsonify({"success": True, "message": "Event updated successfully.", "event": updated})
 
@@ -1024,11 +1035,7 @@ def create_app(test_config=None):
 
         # ATOMIC TRANSACTION: Check capacity + Check prior registration + Insert/Update
         try:
-            with conn: # Auto-commits on success, rolls back on error
-                # Acquire the write lock before counting seats so concurrent
-                # registrations cannot both claim the last seat.
-                conn.execute("BEGIN IMMEDIATE;")
-
+            with conn: # Begins transaction context; auto-commits on success, rolls back on error
                 # 1. Verify Student Existence
                 student = conn.execute("SELECT student_id, name FROM Student WHERE student_id = ?;", (student_id,)).fetchone()
                 if not student:
@@ -1093,8 +1100,6 @@ def create_app(test_config=None):
             return jsonify({"success": True, "message": msg, "registration": created}), 201
 
         except sqlite3.IntegrityError as e:
-            if "full capacity" in str(e):
-                return jsonify({"success": False, "error": "Event is at full capacity. Registration closed."}), 409
             return jsonify({"success": False, "error": f"Database integrity error: {e}"}), 400
 
     @app.route("/api/registrations/<int:student_id>/<int:event_id>", methods=["PUT"])
@@ -1110,7 +1115,6 @@ def create_app(test_config=None):
 
         conn = db.get_db()
         with conn:
-            conn.execute("BEGIN IMMEDIATE;")
             existing = conn.execute(
                 "SELECT attendance_status FROM Event_Registration WHERE student_id = ? AND event_id = ?;",
                 (student_id, event_id)
@@ -1168,4 +1172,3 @@ if __name__ == "__main__":
     # Running on localhost:5000 in debug mode for development
     print("[+] Starting ClubHub Flask server at http://127.0.0.1:5000")
     app.run(host="127.0.0.1", port=5000, debug=True)
-
