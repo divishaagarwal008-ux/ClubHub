@@ -71,6 +71,31 @@ def create_app(test_config=None):
     # System Root & Dashboard Analytics
     # -------------------------------------------------------------------------
     # -------------------------------------------------------------------------
+    # Public Landing Page (no login required)
+    # -------------------------------------------------------------------------
+    @app.route("/public")
+    def public_view():
+        conn = db.get_db()
+        total_students = conn.execute("SELECT COUNT(*) FROM Student").fetchone()[0]
+        total_clubs = conn.execute("SELECT COUNT(*) FROM Club").fetchone()[0]
+        total_events = conn.execute("SELECT COUNT(*) FROM Event").fetchone()[0]
+        total_advisors = conn.execute("SELECT COUNT(*) FROM Faculty_Advisor").fetchone()[0]
+        clubs = db.query_db("""
+            SELECT c.name, c.category, COUNT(m.student_id) AS member_count
+            FROM Club c LEFT JOIN Membership m ON c.club_id = m.club_id
+            GROUP BY c.club_id ORDER BY c.name
+        """)
+        events = db.query_db("""
+            SELECT e.title, e.event_date, e.venue, e.capacity, c.name AS club_name
+            FROM Event e JOIN Club c ON e.club_id = c.club_id
+            WHERE e.status = 'Upcoming' ORDER BY e.event_date ASC LIMIT 5
+        """)
+        return render_template("public.html",
+            total_students=total_students, total_clubs=total_clubs,
+            total_events=total_events, total_advisors=total_advisors,
+            clubs=clubs, events=events)
+
+    # -------------------------------------------------------------------------
     # Demo Login (credentials: admin / admin123)
     # -------------------------------------------------------------------------
     @app.route("/login", methods=["GET"])
