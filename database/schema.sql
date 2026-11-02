@@ -86,3 +86,39 @@ CREATE TABLE IF NOT EXISTS Event_Registration (
     FOREIGN KEY (event_id) REFERENCES Event(event_id) ON DELETE CASCADE
 );
 
+-- 8. Capacity Enforcement Triggers
+-- A CHECK constraint cannot count rows in another table, so the event capacity
+-- ceiling is enforced with triggers. Cancelled registrations do not occupy a seat.
+
+-- Block a new active registration when the event is already full.
+CREATE TRIGGER IF NOT EXISTS trg_registration_capacity_insert
+BEFORE INSERT ON Event_Registration
+WHEN NEW.attendance_status != 'Cancelled'
+ AND (SELECT COUNT(*) FROM Event_Registration
+      WHERE event_id = NEW.event_id AND attendance_status != 'Cancelled')
+     >= (SELECT capacity FROM Event WHERE event_id = NEW.event_id)
+BEGIN
+    SELECT RAISE(ABORT, 'Event is at full capacity');
+END;
+
+-- Block reactivating a cancelled registration (or moving it to another event) when the event is full.
+CREATE TRIGGER IF NOT EXISTS trg_registration_capacity_update
+BEFORE UPDATE OF attendance_status, event_id ON Event_Registration
+WHEN NEW.attendance_status != 'Cancelled'
+ AND (OLD.attendance_status = 'Cancelled' OR OLD.event_id != NEW.event_id)
+ AND (SELECT COUNT(*) FROM Event_Registration
+      WHERE event_id = NEW.event_id AND attendance_status != 'Cancelled')
+     >= (SELECT capacity FROM Event WHERE event_id = NEW.event_id)
+BEGIN
+    SELECT RAISE(ABORT, 'Event is at full capacity');
+END;
+
+-- Block lowering an event's capacity below its current number of active registrations.
+CREATE TRIGGER IF NOT EXISTS trg_event_capacity_update
+BEFORE UPDATE OF capacity ON Event
+WHEN NEW.capacity < (SELECT COUNT(*) FROM Event_Registration
+                     WHERE event_id = NEW.event_id AND attendance_status != 'Cancelled')
+BEGIN
+    SELECT RAISE(ABORT, 'Capacity cannot be lower than the number of active registrations');
+END;
+

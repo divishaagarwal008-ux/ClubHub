@@ -892,12 +892,25 @@ def create_app(test_config=None):
             return jsonify({"success": False, "error": f"Invalid status. Allowed: {VALID_EVENT_STATUSES}"}), 400
 
         conn = db.get_db()
-        conn.execute("""
-            UPDATE Event
-            SET club_id = ?, title = ?, event_date = ?, venue = ?, capacity = ?, status = ?
-            WHERE event_id = ?;
-        """, (club_id, title, event_date, venue, capacity, status, event_id))
-        conn.commit()
+        try:
+            with conn:
+                conn.execute("BEGIN IMMEDIATE;")
+                active_count = conn.execute("""
+                    SELECT COUNT(*) FROM Event_Registration
+                    WHERE event_id = ? AND attendance_status != 'Cancelled';
+                """, (event_id,)).fetchone()[0]
+                if capacity < active_count:
+                    return jsonify({
+                        "success": False,
+                        "error": f"Capacity cannot be lower than the current number of active registrations ({active_count})."
+                    }), 409
+                conn.execute("""
+                    UPDATE Event
+                    SET club_id = ?, title = ?, event_date = ?, venue = ?, capacity = ?, status = ?
+                    WHERE event_id = ?;
+                """, (club_id, title, event_date, venue, capacity, status, event_id))
+        except sqlite3.IntegrityError as e:
+            return jsonify({"success": False, "error": f"Database integrity error: {e}"}), 409
         updated = db.query_db("SELECT * FROM Event WHERE event_id = ?;", (event_id,), one=True)
         return jsonify({"success": True, "message": "Event updated successfully.", "event": updated})
 
@@ -1011,7 +1024,11 @@ def create_app(test_config=None):
 
         # ATOMIC TRANSACTION: Check capacity + Check prior registration + Insert/Update
         try:
-            with conn: # Begins transaction context; auto-commits on success, rolls back on error
+            with conn: # Auto-commits on success, rolls back on error
+                # Acquire the write lock before counting seats so concurrent
+                # registrations cannot both claim the last seat.
+                conn.execute("BEGIN IMMEDIATE;")
+
                 # 1. Verify Student Existence
                 student = conn.execute("SELECT student_id, name FROM Student WHERE student_id = ?;", (student_id,)).fetchone()
                 if not student:
@@ -1076,6 +1093,8 @@ def create_app(test_config=None):
             return jsonify({"success": True, "message": msg, "registration": created}), 201
 
         except sqlite3.IntegrityError as e:
+            if "full capacity" in str(e):
+                return jsonify({"success": False, "error": "Event is at full capacity. Registration closed."}), 409
             return jsonify({"success": False, "error": f"Database integrity error: {e}"}), 400
 
     @app.route("/api/registrations/<int:student_id>/<int:event_id>", methods=["PUT"])
@@ -1091,6 +1110,7 @@ def create_app(test_config=None):
 
         conn = db.get_db()
         with conn:
+            conn.execute("BEGIN IMMEDIATE;")
             existing = conn.execute(
                 "SELECT attendance_status FROM Event_Registration WHERE student_id = ? AND event_id = ?;",
                 (student_id, event_id)

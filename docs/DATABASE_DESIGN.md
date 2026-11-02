@@ -126,7 +126,7 @@ ClubHub distinguishes between constraints enforced by the **database engine** an
 2. **Application-Enforced (Business Rules)**:
    - **Active Club Minimum Membership**: Business rule states that an active club should have at least one executive member (e.g., President). Relational databases cannot enforce minimum cardinality $\ge 1$ across separate tables without circular foreign key deadlocks. Therefore, this is enforced by application logic.
    - **Club Faculty Assignment Requirement**: Administratively, every approved club must have a faculty advisor. In SQLite storage, `Club_Advisor` is a separate table, so this requirement is governed during club approval in application logic.
-   - **Event Capacity Ceiling**: The database enforces `Event.capacity > 0`. However, restricting total active registrations to $\le \text{capacity}$ is managed by application logic during registration checkout (see Section 5.8).
+   - **Event Capacity Ceiling**: The database enforces `Event.capacity > 0` with a `CHECK` constraint and the upper bound on active registrations with triggers. The application repeats the check to return a clear error message (see Section 5.8).
 
 ---
 
@@ -197,9 +197,11 @@ This section describes how event capacity is enforced and how cancellations affe
 
 1. **How Capacity is Enforced**:
    - The database schema enforces `capacity > 0` on `Event`.
-   - The database does **not** count rows across `Event_Registration` to block registrations when capacity is reached. SQLite `CHECK` constraints cannot execute subqueries across tables.
-   - Therefore, capacity limit enforcement is handled by **Application Logic** (in the Flask backend):
-     Before inserting a new registration, the application executes:
+   - SQLite `CHECK` constraints cannot execute subqueries across tables, so the upper bound is enforced with **triggers** in `schema.sql`:
+     - `trg_registration_capacity_insert` rejects a new active registration when the event is full.
+     - `trg_registration_capacity_update` rejects reactivating a cancelled registration when the event is full.
+     - `trg_event_capacity_update` rejects lowering an event's capacity below its active registrations.
+   - The Flask backend also checks capacity inside a `BEGIN IMMEDIATE` transaction (so two concurrent requests cannot both take the last seat) and returns a user-friendly error. Before inserting a new registration, it executes:
      ```sql
      SELECT COUNT(*) FROM Event_Registration 
      WHERE event_id = ? AND attendance_status != 'Cancelled';

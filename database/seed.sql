@@ -1,8 +1,8 @@
 -- =====================================================================
 -- ClubHub — Extended Sample Seed Data  (Nov 2026)
 -- Covers: multi-JOINs, GROUP BY/HAVING, subqueries, NULLs,
---         orphaned rows, clubs with no events, advisors with no clubs,
---         students with no memberships, capacity overflow edge cases.
+--         clubs with no events or members, advisors mentoring multiple
+--         clubs, students with no memberships, cross-club registrations.
 -- =====================================================================
 
 PRAGMA foreign_keys = ON;
@@ -72,7 +72,7 @@ INSERT INTO Faculty_Advisor (advisor_id, name, email, department, phone) VALUES
 (5, 'Dr. Priti Nanda',        'priti.nanda@college.edu',        'Mathematics',                      '9123456784'),
 (6, 'Dr. Anil Khare',         'anil.khare@college.edu',         'Computer Science & Engineering',  '9123456785'),
 (7, 'Prof. Sunita Arora',     'sunita.arora@college.edu',       'Environmental Science',            '9123456786');
--- Note: Advisor 7 (Prof. Sunita Arora) is NOT assigned to any club → tests LEFT JOIN / IS NULL
+-- Note: Every advisor is assigned to at least one club, so Q9 returns an empty result for this data.
 
 -- =====================================================================
 -- 4. CLUB ADVISORS  (M:N)
@@ -85,12 +85,12 @@ INSERT INTO Club_Advisor (club_id, advisor_id) VALUES
 (4, 3), -- Prof. Vikram also → LitSphere (one advisor, two clubs)
 (5, 1), -- Dr. Rao → Aperture Shutter (Inactive club, still has advisor)
 (6, 5), -- Dr. Priti Nanda → MathSoc
-(7, 7), -- Prof. Sunita → Enviro Warriors (she IS assigned here)
+(7, 7), -- Prof. Sunita → Enviro Warriors
 (8, 6), -- Dr. Anil Khare → Cybersec Cell
 (9, 3); -- Prof. Vikram → MusicBox (he advises 3 clubs total — good for HAVING COUNT)
 
 -- =====================================================================
--- 5. MEMBERSHIPS  (30 total)
+-- 5. MEMBERSHIPS  (29 total)
 -- =====================================================================
 INSERT INTO Membership (student_id, club_id, role, joined_at) VALUES
 -- CodeForge (club 1)
@@ -169,7 +169,7 @@ INSERT INTO Event (event_id, club_id, title, event_date, venue, capacity, status
 -- Club 9 (MusicBox) intentionally has NO events
 
 -- =====================================================================
--- 7. EVENT REGISTRATIONS  (35 total)
+-- 7. EVENT REGISTRATIONS  (38 total)
 -- Tests: students registering for events outside their own club,
 --        near-full events, absent students, cross-club participation
 -- =====================================================================
@@ -279,15 +279,14 @@ INSERT INTO Event_Registration (student_id, event_id, registered_at, attendance_
 -- WHERE e.status = 'Completed'
 -- GROUP BY e.event_id;
 
--- Q8: Cross-club participation (student registered for event not of their club)
--- SELECT s.name, c_membership.name AS member_of, c_event.name AS event_club
+-- Q8: Cross-club participation (students registered for events of clubs they are not members of)
+-- SELECT s.name AS student, e.title AS event, c.name AS organising_club
 -- FROM Event_Registration er
 -- JOIN Student s ON er.student_id = s.student_id
 -- JOIN Event e ON er.event_id = e.event_id
--- JOIN Club c_event ON e.club_id = c_event.club_id
--- LEFT JOIN Membership m ON er.student_id = m.student_id AND m.club_id = e.club_id
--- JOIN Club c_membership ON m.club_id = c_membership.club_id
--- WHERE m.membership_id IS NULL;
+-- JOIN Club c ON e.club_id = c.club_id
+-- LEFT JOIN Membership m ON m.student_id = er.student_id AND m.club_id = e.club_id
+-- WHERE m.student_id IS NULL;
 
 -- Q9: Faculty advisor NOT assigned to any club
 -- SELECT fa.name FROM Faculty_Advisor fa

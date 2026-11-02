@@ -132,7 +132,7 @@ Open your browser and navigate to:
    - All relations are free from partial dependencies (single-attribute primary keys or verified full composite dependencies) and transitive dependencies.
    - For every non-trivial functional dependency $X \to Y$, $X$ is a superkey, satisfying Boyce-Codd Normal Form (BCNF).
 3. **Capacity Ceiling Enforcement**:
-   - SQLite table constraints cannot execute subqueries across tables. Therefore, `CHECK (capacity > 0)` guarantees validity in `Event`, while the upper bound ($\le \text{capacity}$) is safely enforced in an atomic Python transaction inside `app.py`.
+   - `CHECK (capacity > 0)` guarantees validity in `Event`. Because a `CHECK` constraint cannot count rows in another table, the upper bound ($\le \text{capacity}$) is enforced by `BEFORE INSERT/UPDATE` triggers in `schema.sql`, which also stop an event's capacity from being lowered below its active registrations. `app.py` repeats the check inside a `BEGIN IMMEDIATE` transaction to return a clear error message.
 4. **Parameterized SQL Queries**:
    - Every single SQL statement uses `?` parameter placeholders (`db.query_db("SELECT ... WHERE id = ?", (id,))`), completely eliminating SQL Injection vulnerabilities.
 5. **Referential Actions**:

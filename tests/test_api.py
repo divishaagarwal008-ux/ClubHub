@@ -67,9 +67,9 @@ def run_api_tests():
     res = client.get("/api/dashboard")
     assert_eq(res.status_code, 200, "GET /api/dashboard -> 200 OK")
     dash = res.get_json()
-    assert_eq(dash["metrics"]["total_students"], 6, "Dashboard total_students == 6")
-    assert_eq(dash["metrics"]["total_clubs"], 5, "Dashboard total_clubs == 5")
-    assert_eq(dash["metrics"]["total_events"], 5, "Dashboard total_events == 5")
+    assert_eq(dash["metrics"]["total_students"], 20, "Dashboard total_students == 20")
+    assert_eq(dash["metrics"]["total_clubs"], 9, "Dashboard total_clubs == 9")
+    assert_eq(dash["metrics"]["total_events"], 12, "Dashboard total_events == 12")
     assert_eq(len(dash["club_membership_counts"]) > 0, True, "Dashboard has club membership counts")
 
     # =========================================================================
@@ -79,7 +79,7 @@ def run_api_tests():
     # List all
     res = client.get("/api/students")
     assert_eq(res.status_code, 200, "GET /api/students -> 200 OK")
-    assert_eq(res.get_json()["count"], 6, "Initial students count == 6")
+    assert_eq(res.get_json()["count"], 20, "Initial students count == 20")
 
     # Search
     res = client.get("/api/students?q=Aarav")
@@ -186,7 +186,7 @@ def run_api_tests():
     print("\n--- 4. Testing Faculty Advisor Routes ---")
     res = client.get("/api/advisors")
     assert_eq(res.status_code, 200, "GET /api/advisors -> 200 OK")
-    assert_eq(res.get_json()["count"], 4, "Initial faculty advisors count == 4")
+    assert_eq(res.get_json()["count"], 7, "Initial faculty advisors count == 7")
 
     # Create Advisor (Valid)
     new_adv = {

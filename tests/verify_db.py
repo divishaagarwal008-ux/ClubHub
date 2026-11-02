@@ -6,8 +6,7 @@ Tests:
 3. CHECK constraints (year, capacity, statuses, categories, roles, phone length)
 4. Composite Primary Key integrity (duplicate junction records fail)
 5. Cascade Deletion & Isolation (Student, Club, Event, and Faculty Advisor deletion behaviors)
-6. Capacity Behavior (Confirms that SQLite schema alone does not enforce registration limit,
-   proving application logic is responsible for capacity ceiling)
+6. Capacity Triggers (over-capacity registrations are rejected; cancelled ones free a seat)
 """
 
 import os
@@ -209,7 +208,7 @@ def run_tests():
     cursor.execute("ROLLBACK TO test_cascades;")
 
     # =========================================================================
-    # 6. Capacity Enforcement Verification (Database vs Application)
+    # 6. Capacity Enforcement Verification (Triggers)
     # =========================================================================
     print("\n--- 6. Verifying Event Capacity Behavior ---")
     total += 1
@@ -218,16 +217,23 @@ def run_tests():
     cursor.execute("INSERT INTO Event (event_id, club_id, title, event_date, venue, capacity) VALUES (905, 1, 'Micro Event', '2026-11-30', 'Room 1', 1);")
     cursor.execute("INSERT INTO Event_Registration (student_id, event_id) VALUES (1, 905);")
     
-    # SQLite schema allows second insert because capacity check requires application logic or trigger
+    # Second active registration must be rejected by the capacity trigger
+    try:
+        cursor.execute("INSERT INTO Event_Registration (student_id, event_id) VALUES (2, 905);")
+        blocked = False
+    except sqlite3.IntegrityError:
+        blocked = True
+
+    # Cancelling the first registration frees the seat for another student
+    cursor.execute("UPDATE Event_Registration SET attendance_status = 'Cancelled' WHERE student_id = 1 AND event_id = 905;")
     cursor.execute("INSERT INTO Event_Registration (student_id, event_id) VALUES (2, 905);")
-    reg_count = cursor.execute("SELECT COUNT(*) FROM Event_Registration WHERE event_id = 905;").fetchone()[0]
-    
-    if reg_count == 2:
+    reg_count = cursor.execute("SELECT COUNT(*) FROM Event_Registration WHERE event_id = 905 AND attendance_status != 'Cancelled';").fetchone()[0]
+
+    if blocked and reg_count == 1:
         passed += 1
-        print("  [PASS] Confirmed: Database schema does NOT block over-capacity registrations.")
-        print("         -> Proves event capacity ceiling MUST be enforced by Application Logic in Flask.")
+        print("  [PASS] Capacity trigger blocked the over-capacity registration; cancellation released the seat.")
     else:
-        print("  [FAIL] Unexpected capacity behavior.")
+        print("  [FAIL] Capacity trigger did not behave as expected.")
     cursor.execute("ROLLBACK TO test_cap;")
 
     conn.close()
