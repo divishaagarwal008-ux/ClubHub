@@ -8,7 +8,7 @@ Technology: Python 3, Flask, SQLite 3 (sqlite3 module)
 import os
 import re
 import sqlite3
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect, session
 
 import db
 
@@ -70,10 +70,33 @@ def create_app(test_config=None):
     # -------------------------------------------------------------------------
     # System Root & Dashboard Analytics
     # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Demo Login (credentials: admin / admin123)
+    # -------------------------------------------------------------------------
+    @app.route("/login", methods=["GET"])
+    def login():
+        return render_template("login.html", error=None)
+
+    @app.route("/login", methods=["POST"])
+    def do_login():
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if username == "admin" and password == "admin123":
+            session["logged_in"] = True
+            return redirect("/dashboard")
+        return render_template("login.html", error="Invalid username or password.")
+
+    @app.route("/logout")
+    def logout():
+        session.clear()
+        return redirect("/login")
+
     @app.route("/", methods=["GET"])
     def index():
         # If accessed from a web browser (Accept header includes text/html), render the web frontend
         if 'text/html' in request.headers.get('Accept', '') and not request.is_json:
+            if not session.get("logged_in"):
+                return redirect("/login")
             return render_template("index.html")
         # Otherwise return API status JSON (for curl, test_client, API tools)
         return jsonify({
@@ -101,6 +124,8 @@ def create_app(test_config=None):
     @app.route("/registrations", methods=["GET"])
     @app.route("/advisors", methods=["GET"])
     def ui_routes():
+        if not session.get("logged_in"):
+            return redirect("/login")
         return render_template("index.html")
 
     @app.route("/api/dashboard", methods=["GET"])
