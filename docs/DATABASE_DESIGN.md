@@ -115,7 +115,7 @@ erDiagram
 | **Faculty Mentorship** | `Club` (M) — `Faculty_Advisor` (N) | $M : N$ | • **Faculty_Advisor**: **Partial participation**. A professor might not advise any club.<br>• **Club**: **Partial participation** in physical storage. A club can be created before an advisor is assigned.<br>• *Enforcement*: Resolved via `Club_Advisor` bridge table. |
 
 ### 4.2 Distinguishing Business Rules from Database-Enforced Constraints
-In DBMS viva examinations, students must clearly differentiate between constraints enforced by the **database engine** vs. those enforced by the **application layer**:
+ClubHub distinguishes between constraints enforced by the **database engine** and those enforced by the **application layer**:
 
 1. **Database-Enforced (Schema Constraints)**:
    - **Event Total Participation on Club**: Enforced because `Event.club_id` has a `NOT NULL` constraint and a foreign key referencing `Club(club_id)`. SQLite rejects any event with a missing or non-existent `club_id`.
@@ -193,7 +193,7 @@ In DBMS viva examinations, students must clearly differentiate between constrain
   - `attendance_status`: `NOT NULL DEFAULT 'Registered'`, `CHECK (attendance_status IN ('Registered', 'Attended', 'Absent', 'Cancelled'))`
 
 ### 5.8 Event Capacity Enforcement & The 'Cancelled' Status Rule
-A common viva question concerns how event capacity is enforced and how cancellations affect capacity:
+This section describes how event capacity is enforced and how cancellations affect it:
 
 1. **How Capacity is Enforced**:
    - The database schema enforces `capacity > 0` on `Event`.
@@ -216,7 +216,7 @@ A common viva question concerns how event capacity is enforced and how cancellat
 
 ## 6. Functional Dependencies (FDs) and Normalization Proofs
 
-To prove normalization rigorously for a viva examination, we define the prime attributes (attributes belonging to any candidate key) and non-prime attributes for every relation.
+To prove normalization rigorously, we define the prime attributes (attributes belonging to any candidate key) and non-prime attributes for every relation.
 
 ### Table 1: `Student`
 - **Attributes**: `(student_id, name, email, roll_no, branch, year, phone)`
@@ -322,7 +322,7 @@ To prove normalization rigorously for a viva examination, we define the prime at
 ## 7. Key Design Decisions & Delete Behaviors Explained
 
 ### 7.1 Deletion Scenarios (Referential Actions)
-| Entity Deleted | What Happens to Dependent Records? | Reason / Viva Explanation |
+| Entity Deleted | What Happens to Dependent Records? | Reason |
 |---|---|---|
 | **Student** | • `Membership` records are deleted.<br>• `Event_Registration` records are deleted. | Enforced by `ON DELETE CASCADE`. Avoids orphaned registrations and memberships when a student leaves the college. |
 | **Club** | • `Membership` records are deleted.<br>• `Club_Advisor` records are deleted.<br>• `Event` records are deleted.<br>• (Transitively) `Event_Registration` records are deleted. | Enforced by `ON DELETE CASCADE`. If a club is disbanded, all its internal events and memberships dissolve. |

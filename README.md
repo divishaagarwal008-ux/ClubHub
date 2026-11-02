@@ -1,6 +1,6 @@
 # ClubHub — Student Club and Organisation Management System
 
-A beginner-friendly College DBMS Mini-Project built with **Python Flask**, **SQLite 3**, **Bootstrap 5**, and **Vanilla JavaScript**.
+A college DBMS mini-project built with **Python Flask**, **SQLite 3**, **Bootstrap 5**, and **Vanilla JavaScript**.
 
 ---
 
@@ -47,7 +47,7 @@ ClubHub/
 
 ### Step 1: Open PowerShell and Navigate to the Project
 ```powershell
-cd c:\DivishaData22Dec23\nsut\codes\projects\ClubHub
+cd ClubHub
 ```
 
 ### Step 2: (Optional) Create & Activate Virtual Environment
@@ -84,7 +84,7 @@ python tests/test_ui_flows.py
 python app.py
 ```
 Open your browser and navigate to:
-👉 **`http://127.0.0.1:5000`**
+**`http://127.0.0.1:5000`**
 
 ---
 
@@ -124,7 +124,7 @@ Open your browser and navigate to:
 
 ---
 
-## 4. Key DBMS Viva Talking Points
+## 4. Key Design Highlights
 
 1. **Why SQLite & Foreign Key Enforcement**:
    - SQLite disables foreign keys by default for backwards compatibility. ClubHub explicitly executes `PRAGMA foreign_keys = ON;` in `db.py` on **every single connection**, guaranteeing referential integrity.

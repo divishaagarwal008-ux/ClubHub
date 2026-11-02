@@ -1,7 +1,6 @@
 /**
  * ClubHub — Student Club and Organisation Management System
  * Frontend Application Controller (app.js)
- * Clean, lightweight, modular vanilla JavaScript for easy viva explanation.
  */
 
 // =============================================================================

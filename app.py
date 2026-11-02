@@ -3,7 +3,6 @@ ClubHub — Student Club and Organisation Management System
 Flask Backend Application (app.py)
 
 Technology: Python 3, Flask, SQLite 3 (sqlite3 module)
-Designed for clean, beginner-friendly explanations during a DBMS viva.
 """
 
 import os
@@ -30,7 +29,7 @@ def create_app(test_config=None):
     default_db_path = os.path.join(base_dir, "database", "clubhub.db")
     app.config.from_mapping(
         DATABASE=default_db_path,
-        SECRET_KEY='clubhub-insecure-dev-key-for-viva'
+        SECRET_KEY='clubhub-dev-key'
     )
 
     if test_config:
